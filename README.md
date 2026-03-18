@@ -11,7 +11,7 @@ Built as the Appscrip AI Engineer Assignment.
 | Feature | Implementation |
 |---|---|
 | **Single analysis endpoint** | `GET /analyze/{sector}` returns a full markdown report |
-| **AI Analysis** | Google Gemini 1.5 Flash generates structured sector reports |
+| **AI Analysis** | G4F (GPT-4 Free) generates structured sector reports |
 | **Live Data** | DuckDuckGo search fetches current news (no API key needed) |
 | **Authentication** | Guest JWT tokens via `POST /token` (60-min expiry) |
 | **Rate Limiting** | 10 requests / 60 seconds per session (sliding window) |
@@ -39,10 +39,10 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# Edit .env and set GEMINI_API_KEY
+# Edit .env if you'd like to configure custom variables
 ```
 
-Get a **free** Gemini API key at <https://aistudio.google.com/app/apikey>.
+The system is configured to use G4F internally, which provides free GPT-4 analysis without needing any API keys.
 
 ### 3. Run the server
 
@@ -144,7 +144,7 @@ Client
           ├─ [Rate Limit] Check sliding window (10 req/60s)
           ├─ [Validate] sector in allowlist
           ├─ [DataCollector] 4× DuckDuckGo queries (concurrent)
-          ├─ [AIAnalyzer] Build prompt → Gemini API
+          ├─ [AIAnalyzer] Build prompt → G4F API
           └─ Return AnalysisResponse (sector, report, metadata)
 ```
 
@@ -164,8 +164,6 @@ Client
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `GEMINI_API_KEY` | ✅ Yes | — | Google Gemini API key |
-| `GEMINI_MODEL` | No | `gemini-1.5-flash` | Gemini model name |
 | `JWT_SECRET_KEY` | No | dev default | Change in production! |
 
 ---
@@ -200,7 +198,7 @@ approximately 20% of global generic exports by volume ...
 | `uvicorn` | ASGI server |
 | `pydantic` | Request/response validation |
 | `PyJWT` | JWT token handling |
-| `google-generativeai` | Gemini API client |
+| `g4f` | Free GPT-4 AI client |
 | `duckduckgo-search` | Free web search (no key needed) |
 | `python-dotenv` | `.env` file loading |
 

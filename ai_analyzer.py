@@ -4,16 +4,14 @@ ai_analyzer.py — Google Gemini-powered market analysis
 
 import asyncio
 import logging
-import os
 from typing import Any
 
-from google import genai
-from google.genai import types
+from g4f.client import AsyncClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger("trade_api.ai_analyzer")
-
-GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
 SYSTEM_PROMPT = """You are a senior trade analyst specialising in India's import/export markets.
 Your task is to produce a structured, data-rich markdown report on current
@@ -71,35 +69,22 @@ class AIAnalyzer:
     """Wraps Google Gemini to produce structured markdown trade analysis reports."""
 
     def __init__(self):
-        if GEMINI_API_KEY:
-            self._client = genai.Client(api_key=GEMINI_API_KEY)
-            logger.info("Gemini client initialised with model '%s'.", GEMINI_MODEL)
-        else:
-            self._client = None
-            logger.warning("GEMINI_API_KEY not set — returning mock report.")
+        self._client = AsyncClient()
+        logger.info("G4F client initialised.")
 
     async def analyze(self, sector: str, market_data: dict[str, Any]) -> str:
-        if self._client is None:
-            return self._mock_report(sector)
 
         prompt = self._build_prompt(sector, market_data)
         loop = asyncio.get_event_loop()
 
         try:
-            response = await loop.run_in_executor(
-                None,
-                lambda: self._client.models.generate_content(
-                    model=GEMINI_MODEL,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        max_output_tokens=4096,
-                        temperature=0.4,
-                    ),
-                ),
+            response = await self._client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}],
             )
-            return response.text
+            return response.choices[0].message.content
         except Exception as exc:
-            logger.error("Gemini API error: %s", exc)
+            logger.error("G4F API error: %s", exc)
             raise
 
     def _build_prompt(self, sector: str, market_data: dict[str, Any]) -> str:

@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from auth import create_guest_token, verify_token
@@ -255,3 +256,6 @@ async def get_session_info(session_id: str = Depends(get_current_session)):
 @app.get("/health", tags=["Health"], summary="Health check")
 async def health():
     return {"status": "ok", "service": "Trade Opportunities API", "version": "1.0.0"}
+
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
